@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>991-终端服务器</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: #000;
+            color: #fff;
+            text-align: center;
+            overflow-x: hidden;
+            /* 禁止用户选中文本，增加安全感 */
+            user-select: none;
+        }
+
+        /* 超鲜艳霓虹文字动画 */
+        @keyframes neonRainbow {
+            0% { color: #ff0055; text-shadow: 0 0 10px #ff0055, 0 0 20px #ff0055; }
+            25% { color: #00ff00; text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00; }
+            50% { color: #00ffff; text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff; }
+            75% { color: #ffff00; text-shadow: 0 0 10px #ffff00, 0 0 20px #ffff00; }
+            100% { color: #ff0055; text-shadow: 0 0 10px #ff0055, 0 0 20px #ff0055; }
+        }
+
+        .bright-neon {
+            animation: neonRainbow 2s infinite linear;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .profile-container { margin-top: 30px; margin-bottom: 10px; }
+        .avatar {
+            width: 110px; height: 110px;
+            border-radius: 50%;
+            border: 3px solid #00d2ff;
+            object-fit: cover;
+            box-shadow: 0 0 25px rgba(0, 210, 255, 0.6);
+        }
+
+        .page { display: none; padding: 20px; }
+        .active { display: block; }
+
+        input[type=text] {
+            padding: 15px; width: 240px;
+            border: 2px solid #00d2ff; background: rgba(0, 210, 255, 0.1); 
+            color: #fff; border-radius: 15px;
+            outline: none; text-align: center; font-weight: bold;
+            backdrop-filter: blur(5px);
+        }
+
+        button {
+            padding: 12px 30px; margin: 10px 5px;
+            background: rgba(0, 210, 255, 0.15); 
+            color: #00d2ff; 
+            border: 1px solid rgba(0, 210, 255, 0.5); 
+            border-radius: 20px; 
+            cursor: pointer; font-weight: bold;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        button:active { transform: scale(0.95); background: rgba(0, 210, 255, 0.4); }
+
+        #popup {
+            position: fixed; top: 45%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95); border: 2px solid #00d2ff; 
+            padding: 25px; z-index: 100; border-radius: 20px;
+            box-shadow: 0 0 50px rgba(0, 210, 255, 0.5);
+        }
+
+        .progress-container {
+            width: 85%; background: #111; margin: 40px auto;
+            border: 1px solid #333; height: 30px; border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .progress-bar { height: 100%; width: 0; transition: width 0.15s, background-color 0.2s; }
+
+        .status-container {
+            width: 85%; max-width: 320px; margin: 25px auto;
+            text-align: left; padding: 15px;
+            background: rgba(15, 15, 15, 0.8);
+            border: 1px solid rgba(0, 210, 255, 0.3);
+            border-radius: 20px; backdrop-filter: blur(10px);
+        }
+
+        .status-item { margin-bottom: 20px; font-weight: bold; }
+        .mini-bar-bg { width: 100%; height: 10px; background: rgba(255,255,255,0.1); margin-top: 8px; border-radius: 5px; }
+        .mini-bar-fill { height: 100%; width: 0%; transition: width 0.6s, background-color 0.4s; border-radius: 5px; }
+
+        .static-unlock {
+            width: 90px; height: 90px; margin: 15px auto;
+            border-radius: 50%; border: 4px solid #00d2ff;
+            animation: neonRainbow 3s infinite linear;
+        }
+
+        .options button { display: block; width: 100%; margin: 15px auto; }
+    </style>
+</head>
+<body oncontextmenu="return false" onselectstart="return false">
+
+<div id="page1" class="page active">
+    <div class="profile-container">
+        <img src="avatar.jpg" alt="头像" class="avatar">
+    </div>
+    <h1 class="bright-neon">991-安全防御系统</h1>
+    <p style="color: #00d2ff;">防火墙已就绪：访问受限</p>
+    <input type="text" id="networkInput" placeholder="输入加密密钥">
+    <br>
+    <button onclick="checkNetwork()">验证身份</button>
+</div>
+
+<div id="page2" class="page">
+    <div id="popup" class="bright-neon">正在验证密钥有效性...<br>反调试机制启动</div>
+</div>
+
+<div id="page3" class="page">
+    <h2 class="bright-neon">系统核心接管中</h2>
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <p id="loadingLog" style="color:#00d2ff;">正在扫描入侵威胁...</p>
+</div>
+
+<div id="page4" class="page">
+    <h1 class="bright-neon">接管完成</h1>
+    <div class="static-unlock"></div>
+    
+    <div class="status-container">
+        <div class="status-item">负载状态: <span id="loadTxt" class="bright-neon">0</span><div class="mini-bar-bg"><div id="loadBar" class="mini-bar-fill"></div></div></div>
+        <div class="status-item">网络防御: <span id="pingTxt" class="bright-neon">0</span><div class="mini-bar-bg"><div id="pingBar" class="mini-bar-fill"></div></div></div>
+        <div class="status-item">加密内存: <span id="memTxt" class="bright-neon">0</span><div class="mini-bar-bg"><div id="memBar" class="mini-bar-fill"></div></div></div>
+    </div>
+
+    <div class="options">
+        <button onclick="optionClick('自瞄系统')">激活自瞄系统</button>
+        <button onclick="optionClick('子弹追踪')">激活子弹追踪</button>
+        <button onclick="optionClick('硬件修改')">激活硬件修改</button>
+        <button onclick="optionClick('绘制雷达')">激活绘制雷达</button>
+    </div>
+</div>
+
+<script>
+// --- 安全防护逻辑 ---
+// 1. 禁用 F12 和常用调试快捷键
+document.onkeydown = function(e) {
+    if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) {
+        alert("检测到非法访问尝试，安全系统已拦截。");
+        return false;
+    }
+};
+
+// 2. 卡密加密对比（不再明文保存 NB66）
+const _0x1a = "TkI2Ng=="; // 这是 NB66 的 Base64 编码
+
+function checkNetwork() {
+    let input = document.getElementById("networkInput").value.trim();
+    // 使用 btoa 转换输入进行对比
+    if(btoa(input.toUpperCase()) === _0x1a) {
+        goPage(2);
+        setTimeout(() => { goPage(3); startProgress(); }, 1600);
+    } else {
+        alert("验证失败：非法密钥");
+    }
+}
+
+// --- 动画与业务逻辑 ---
+function getBrightColor() {
+    return `hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)`; 
+}
+
+function goPage(num) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page' + num).classList.add('active');
+}
+
+function startProgress() {
+    let bar = document.getElementById('progressBar');
+    let log = document.getElementById('loadingLog');
+    let width = 0;
+    let interval = setInterval(() => {
+        if(width >= 100) {
+            clearInterval(interval);
+            goPage(4);
+            startMonitoring(); 
+        } else {
+            width += Math.random() * 4;
+            if(width > 100) width = 100;
+            bar.style.width = width + '%';
+            bar.style.backgroundColor = getBrightColor();
+            log.innerText = "> 同步核心安全协议: " + Math.round(width) + "%";
+        }
+    }, 50);
+}
+
+let currentData = { load: 40, ping: 20, mem: 55 };
+function startMonitoring() {
+    setInterval(() => {
+        currentData.load = Math.round(Math.min(Math.max(currentData.load + (Math.random() * 4 - 2), 15), 85));
+        currentData.ping = Math.round(Math.min(Math.max(currentData.ping + (Math.random() * 6 - 3), 10), 120));
+        currentData.mem = Math.round(Math.min(Math.max(currentData.mem + (Math.random() * 2 - 1), 30), 90));
+
+        document.getElementById('loadTxt').innerText = currentData.load;
+        document.getElementById('pingTxt').innerText = currentData.ping;
+        document.getElementById('memTxt').innerText = currentData.mem;
+
+        document.getElementById('loadBar').style.width = currentData.load + '%';
+        document.getElementById('loadBar').style.backgroundColor = getBrightColor();
+        document.getElementById('pingBar').style.width = (currentData.ping / 120 * 100) + '%';
+        document.getElementById('pingBar').style.backgroundColor = getBrightColor();
+        document.getElementById('memBar').style.width = currentData.mem + '%';
+        document.getElementById('memBar').style.backgroundColor = getBrightColor();
+    }, 900);
+}
+
+function optionClick(name) {
+    alert("安全指令已执行：" + name + " 激活成功");
+}
+</script>
+
+</body>
+</html>
